@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  posts       Post[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Post {
+  id            String          @id @default(cuid())
+  categoryId    String?
+  title         String?
+  caption       String
+  mediaType     MediaType
+  mediaUrl      String
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  category      Category?       @relation(fields: [categoryId], references: [id])
+  schedules     Schedule[]
+  scheduledJobs ScheduledJob[]
+
+  @@map("posts")
+}
+
+model Schedule {
+  id           String       @id @default(cuid())
+  name         String?
+  postId       String
+  scheduleType ScheduleType
+  timeOfDay    String // Store as "HH:mm"
+  startDate    DateTime     @db.Date
+  endDate      DateTime?    @db.Date
+  daysOfWeek   String? // "MON,TUE,WED"
+  daysOfMonth  String? // "1,15,30"
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  post         Post         @relation(fields: [postId], references: [id])
+  scheduledJobs ScheduledJob[]
+
+  @@map("schedules")
+}
+
+model ScheduledJob {
+  id           String    @id @default(cuid())
+  scheduleId   String?
+  postId       String
+  scheduledAt  DateTime
+  status       JobStatus @default(PENDING)
+  sentAt       DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  schedule     Schedule? @relation(fields: [scheduleId], references: [id])
+  post         Post      @relation(fields: [postId], references: [id])
+
+  @@map("scheduled_jobs")
+}
+
+model WhatsAppConfig {
+  id                   String          @id @default(cuid())
+  phoneNumberId        String
+  destinationType      DestinationType
+  destinationIdentifier String
+  timezone             String          @default("Asia/Pontianak")
+  defaultDailyTime     String? // Store as "HH:mm"
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@map("whatsapp_configs")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum ScheduleType {
+  ONCE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum JobStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum DestinationType {
+  SINGLE
+  GROUP
+}
