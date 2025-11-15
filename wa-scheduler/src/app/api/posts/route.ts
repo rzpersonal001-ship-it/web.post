@@ -56,21 +56,14 @@ export async function POST(request: Request) {
     });
 
     if (action === 'send-now') {
-      const config = await prisma.whatsAppConfig.findFirst();
-      if (!config) {
-        return NextResponse.json({ message: 'WhatsApp configuration not found.' }, { status: 500 });
-      }
-      const { success, error } = await sendTextWithMedia(post, config as WhatsAppConfig); // Assuming config is found and valid
       await prisma.scheduledJob.create({
         data: {
           postId: post.id,
-          scheduledAt: new Date(),
-          status: success ? 'SENT' : 'FAILED',
-          errorMessage: error,
-          sentAt: success ? new Date() : undefined,
+          scheduledAt: new Date(), // Set to now to be picked up by the next scheduler run
+          status: 'PENDING',
         },
       });
-      return NextResponse.json({ message: 'Post sent!', post }, { status: 201 });
+      return NextResponse.json({ message: 'Post scheduled for immediate sending!', post }, { status: 201 });
     }
 
     if (action === 'schedule') {

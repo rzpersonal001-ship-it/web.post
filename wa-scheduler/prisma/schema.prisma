@@ -28,6 +28,7 @@ model Post {
   caption       String
   mediaType     MediaType
   mediaUrl      String
+  destination   String?
   isActive      Boolean         @default(true)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -100,6 +101,7 @@ enum ScheduleType {
 
 enum JobStatus {
   PENDING
+  SENDING
   SENT
   FAILED
   CANCELLED

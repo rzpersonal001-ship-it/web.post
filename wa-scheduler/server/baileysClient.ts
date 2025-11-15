@@ -1,43 +1,59 @@
 import makeWASocket, {
-    useMultiFileAuthState,
-    fetchLatestBaileysVersion,
-    DisconnectReason
-} from "@whiskeysockets/baileys"
-import qrcode from "qrcode-terminal"
+  useMultiFileAuthState,
+  fetchLatestBaileysVersion,
+  DisconnectReason,
+  WASocket,
+} from "@whiskeysockets/baileys";
+import qrcode from "qrcode-terminal";
+import { Boom } from "@hapi/boom";
 
-export async function startBaileys() {
-    const authDir = "./baileys_auth"
-    const { state, saveCreds } = await useMultiFileAuthState(authDir)
-    const { version } = await fetchLatestBaileysVersion()
+let sock: WASocket | undefined;
 
-    const sock = makeWASocket({
-        version,
-        auth: state,
-        printQRInTerminal: true
-    })
+async function startBaileys() {
+  const { state, saveCreds } = await useMultiFileAuthState("baileys_auth_info");
+  const { version, isLatest } = await fetchLatestBaileysVersion();
+  console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
 
-    sock.ev.on("creds.update", saveCreds)
+  sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: true,
+  });
 
-    sock.ev.on("connection.update", (update: any) => {
-        const { connection, lastDisconnect, qr } = update
+  sock.ev.on("creds.update", saveCreds);
 
-        if (qr) {
-            console.log("SCAN QR BERIKUT:")
-            qrcode.generate(qr, { small: true })
-        }
+  sock.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect, qr } = update;
 
-        if (connection === "close") {
-            const shouldReconnect =
-                lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+    if (qr) {
+      console.log("QR Code diterima, silakan pindai:");
+      qrcode.generate(qr, { small: true });
+    }
 
-            console.log("Koneksi terputus. Reconnect:", shouldReconnect)
-            if (shouldReconnect) startBaileys()
-        }
+    if (connection === "close") {
+      const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+      console.log(
+        "Koneksi ditutup karena:",
+        lastDisconnect?.error,
+        ", menyambungkan kembali:",
+        shouldReconnect
+      );
+      if (shouldReconnect) {
+        startBaileys();
+      }
+    } else if (connection === "open") {
+      console.log("Koneksi WhatsApp terbuka");
+    }
+  });
 
-        if (connection === "open") {
-            console.log("Baileys connected!")
-        }
-    })
-
-    return sock
+  return sock;
 }
+
+function getSocket(): WASocket {
+    if (!sock) {
+      throw new Error("Baileys client is not initialized. Call startBaileys() first.");
+    }
+    return sock;
+}
+
+export { startBaileys, getSocket };
