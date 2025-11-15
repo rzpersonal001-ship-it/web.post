@@ -1,5 +1,5 @@
 import prisma from './db';
-import { sendTextWithMedia } from './whatsappService';
+import { sendTextMessage, sendImageMessage } from '../../server/whatsappServiceBaileys';
 import { getCurrentTimeInZone } from './dateUtils';
 import { Schedule, WhatsAppConfig } from '@prisma/client';
 import { addDays, addMonths, addWeeks, set, lightFormat } from 'date-fns';
@@ -53,20 +53,32 @@ async function processPendingJobs(): Promise<number> {
   }
 
   for (const job of dueJobs) {
-    const { success, error } = await sendTextWithMedia(job.post, {
-      destinationIdentifier: config.destinationIdentifier,
-      destinationType: config.destinationType,
-      phoneNumberId: config.phoneNumberId,
-    });
+    try {
+      if (job.post.imageUrl) {
+        // Asumsi imageUrl adalah URL publik, kita perlu mengambilnya sebagai Buffer
+        const response = await fetch(job.post.imageUrl);
+        const imageBuffer = Buffer.from(await response.arrayBuffer());
+        await sendImageMessage(config.destinationIdentifier, imageBuffer, job.post.content);
+      } else {
+        await sendTextMessage(config.destinationIdentifier, job.post.content);
+      }
 
-    await prisma.scheduledJob.update({
-      where: { id: job.id },
-      data: {
-        status: success ? 'SENT' : 'FAILED',
-        sentAt: success ? new Date() : null,
-        errorMessage: error || null,
-      },
-    });
+      await prisma.scheduledJob.update({
+        where: { id: job.id },
+        data: {
+          status: 'SENT',
+          sentAt: new Date(),
+        },
+      });
+    } catch (error: any) {
+      await prisma.scheduledJob.update({
+        where: { id: job.id },
+        data: {
+          status: 'FAILED',
+          errorMessage: error.message || 'An unknown error occurred',
+        },
+      });
+    }
   }
 
   return dueJobs.length;
