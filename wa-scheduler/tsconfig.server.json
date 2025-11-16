@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "dist",
+    "noEmit": false,
+    "lib": ["esnext"],
+    "target": "es2017"
+    // JANGAN taruh allowImportingTsExtensions di sini
+  },
+  "include": ["server/**/*.ts"],
+  "exclude": ["node_modules", "src", ".next"]
+}
