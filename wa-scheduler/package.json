@@ -6,44 +6,39 @@
     "dev": "next dev",
     "build": "next build",
     "build:server": "tsc -p tsconfig.server.json",
-
     "start": "next start",
-
     "bot": "node dist/baileysClient.js",
     "scheduler": "node dist/scheduler.js",
-    "test:send": "node dist/testSend.js",
-
-    "bot:dev": "ts-node -P tsconfig.server.json server/baileysClient.ts",
-    "scheduler:dev": "ts-node -P tsconfig.server.json server/scheduler.ts",
-    "test:send:dev": "ts-node -P tsconfig.server.json server/testSend.ts",
-
+    "api": "node dist/api.js",
+    "test:send": "ts-node -P tsconfig.server.json server/testSend.ts",
     "lint": "next lint",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"
   },
   "dependencies": {
+    "@hapi/boom": "^10.0.1",
     "@prisma/client": "^5.22.0",
     "@whiskeysockets/baileys": "^6.7.21",
     "axios": "^1.13.2",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.1",
-    "express": "^5.1.0",
-    "next": "16.0.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "next": "14.2.0",
     "qrcode-terminal": "^0.12.0",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/express": "^5.0.5",
+    "@types/express": "^4.17.21",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/qrcode-terminal": "^0.12.2",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "eslint": "^9",
-    "eslint-config-next": "16.0.2",
+    "eslint-config-next": "14.2.0",
     "prisma": "^5.22.0",
-    "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.0"
   }

@@ -1,73 +1,85 @@
 import { PrismaClient } from '@prisma/client';
 import { sendTextMessage, sendImageMessage } from './whatsappServiceBaileys';
+import { baileysClient } from './baileysClient';
 
 const prisma = new PrismaClient();
+const CHECK_INTERVAL = 10000; // 10 detik
 
-async function runScheduler() {
-  console.log('Scheduler is running...');
-
-  const now = new Date();
-
-  const pendingJob = await prisma.scheduledJob.findFirst({
-    where: {
-      status: 'PENDING',
-      scheduledAt: {
-        lte: now,
-      },
-    },
-    orderBy: {
-      scheduledAt: 'asc',
-    },
-    include: {
-        post: true,
+async function getDestination(): Promise<string | null> {
+    try {
+        const config = await prisma.whatsAppConfig.findFirst();
+        if (!config || !config.destinationIdentifier) {
+            console.warn("[Scheduler] WhatsApp destination is not configured in WhatsAppConfig.");
+            return null;
+        }
+        return config.destinationIdentifier;
+    } catch (error) {
+        console.error("[Scheduler] DB Error getting destination:", error);
+        return null;
     }
-  });
+}
 
-  if (!pendingJob) {
-    console.log('No pending jobs to send.');
-    return;
-  }
-
-  console.log(`Found job to send: ${pendingJob.id} for post ${pendingJob.postId}`);
-
+async function processPendingJobs() {
   try {
-    await prisma.scheduledJob.update({
-      where: { id: pendingJob.id },
-      data: { status: 'SENDING' },
-    });
-
-    if (!pendingJob.post.destination) {
-        throw new Error(`Post ${pendingJob.postId} does not have a destination.`);
+    const destination = await getDestination();
+    if (!destination) {
+        return; // Don't proceed if we don't have a destination
     }
 
-    if (pendingJob.post.mediaType === 'IMAGE' && pendingJob.post.mediaUrl) {
-      const response = await fetch(pendingJob.post.mediaUrl);
-      const imageBuffer = Buffer.from(await response.arrayBuffer());
-      await sendImageMessage(pendingJob.post.destination, imageBuffer, pendingJob.post.caption);
-    } else {
-      await sendTextMessage(pendingJob.post.destination, pendingJob.post.caption);
-    }
-
-    await prisma.scheduledJob.update({
-      where: { id: pendingJob.id },
-      data: { status: 'SENT', sentAt: new Date() },
+    const now = new Date();
+    const pendingJobs = await prisma.scheduledJob.findMany({
+      where: {
+        status: 'PENDING',
+        scheduledAt: {
+          lte: now,
+        },
+      },
+      orderBy: {
+        scheduledAt: 'asc',
+      },
+      include: {
+        post: true,
+      },
     });
 
-    console.log(`Job ${pendingJob.id} sent successfully.`);
+    if (pendingJobs.length === 0) {
+      return;
+    }
+
+    console.log(`[Scheduler] Found ${pendingJobs.length} pending jobs. Destination: ${destination}`);
+
+    for (const job of pendingJobs) {
+      console.log(`[Scheduler] Processing job ${job.id} for post ${job.postId}`);
+      try {
+        if (job.post.mediaType === 'IMAGE' && job.post.mediaUrl) {
+          const response = await fetch(job.post.mediaUrl);
+          const imageBuffer = Buffer.from(await response.arrayBuffer());
+          await sendImageMessage(destination, imageBuffer, job.post.caption);
+        } else {
+          await sendTextMessage(destination, job.post.caption || '');
+        }
+
+        await prisma.scheduledJob.update({
+          where: { id: job.id },
+          data: { status: 'SENT', sentAt: new Date() },
+        });
+
+        console.log(`[Scheduler] Job ${job.id} sent successfully.`);
+      } catch (error) {
+        console.error(`[Scheduler] Failed to send job ${job.id}:`, error);
+        await prisma.scheduledJob.update({
+          where: { id: job.id },
+          data: { status: 'FAILED', errorMessage: (error as Error).message },
+        });
+      }
+    }
   } catch (error) {
-    console.error(`Failed to send job ${pendingJob.id}:`, error);
-    await prisma.scheduledJob.update({
-      where: { id: pendingJob.id },
-      data: { status: 'FAILED', errorMessage: (error as Error).message },
-    });
+      console.error("[Scheduler] Failed to process jobs due to DB error:", error);
+      // Don't crash the whole service
   }
 }
 
-runScheduler()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+export function startScheduler() {
+    console.log('[Scheduler] Started. Checking for jobs every 10 seconds...');
+    setInterval(processPendingJobs, CHECK_INTERVAL);
+}

@@ -1,9 +1,11 @@
 module.exports = {
   apps: [
     {
-      name: "wa-scheduler",
-      script: "dist/scheduler.js",
-      watch: false
+      name: "wa-service",
+      script: "dist/main.js",
+      watch: false,
+      instances: 1,
+      exec_mode: "fork"
     }
   ]
-}
+};

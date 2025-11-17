@@ -4,9 +4,10 @@
     "module": "CommonJS",
     "outDir": "dist",
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "lib": ["esnext"],
-    "target": "es2017"
-    // JANGAN taruh allowImportingTsExtensions di sini
+    "target": "es2017",
+    "moduleResolution": "node"
   },
   "include": ["server/**/*.ts"],
   "exclude": ["node_modules", "src", ".next"]
