@@ -11,6 +11,7 @@
     "scheduler": "node dist/scheduler.js",
     "api": "node dist/api.js",
     "test:send": "ts-node -P tsconfig.server.json server/testSend.ts",
+    "test:scheduler": "ts-node -P tsconfig.server.json server/testScheduler.ts",
     "lint": "next lint",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy"

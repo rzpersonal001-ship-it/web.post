@@ -98,7 +98,13 @@ export async function generateJobsForSchedule(schedule: Schedule, daysAhead: num
   });
 
   let startDate = lastJob ? addDays(lastJob.scheduledAt, 1) : schedule.startDate;
-  if (startDate < now) startDate = now;
+
+  // For recurring schedules, if the start date is in the past,
+  // start generating from today to avoid creating a storm of past jobs.
+  // For "ONCE" schedules, we must respect the original start date, even if it's in the past.
+  if (schedule.scheduleType !== 'ONCE' && startDate < now) {
+    startDate = now;
+  }
 
   const newJobsData: { postId: string; scheduleId: string; scheduledAt: Date }[] = [];
   let cursor = startDate;
