@@ -25,35 +25,44 @@ model Post {
   id            String          @id @default(cuid())
   categoryId    String?
   title         String?
-  caption       String
+  caption       String          @db.Text
   mediaType     MediaType
-  mediaUrl      String
+  mediaUrl      String          @db.Text
   isActive      Boolean         @default(true)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  category      Category?       @relation(fields: [categoryId], references: [id])
+  category      Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   schedules     Schedule[]
   scheduledJobs ScheduledJob[]
 
+  @@index([categoryId])
+  @@index([mediaType])
+  @@index([isActive])
+  @@index([createdAt])
   @@map("posts")
 }
 
 model Schedule {
-  id           String       @id @default(cuid())
-  name         String?
-  postId       String
-  scheduleType ScheduleType
-  timeOfDay    String // Store as "HH:mm"
-  startDate    DateTime     @db.Date
-  endDate      DateTime?    @db.Date
-  daysOfWeek   String? // "MON,TUE,WED"
-  daysOfMonth  String? // "1,15,30"
-  isActive     Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  post         Post         @relation(fields: [postId], references: [id])
+  id            String         @id @default(cuid())
+  name          String?
+  postId        String
+  scheduleType  ScheduleType
+  timeOfDay     String // Store as "HH:mm"
+  startDate     DateTime       @db.Date
+  endDate       DateTime?      @db.Date
+  daysOfWeek    String? // "MON,TUE,WED"
+  daysOfMonth   String? // "1,15,30"
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   scheduledJobs ScheduledJob[]
 
+  @@index([postId])
+  @@index([scheduleType])
+  @@index([isActive])
+  @@index([startDate])
+  @@index([endDate])
   @@map("schedules")
 }
 
@@ -64,24 +73,30 @@ model ScheduledJob {
   scheduledAt  DateTime
   status       JobStatus @default(PENDING)
   sentAt       DateTime?
-  errorMessage String?
+  errorMessage String?   @db.Text
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  schedule     Schedule? @relation(fields: [scheduleId], references: [id])
-  post         Post      @relation(fields: [postId], references: [id])
+  schedule     Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  post         Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  @@unique([scheduleId, scheduledAt])
+  @@index([scheduleId])
+  @@index([postId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([status, scheduledAt])
   @@map("scheduled_jobs")
 }
 
 model WhatsAppConfig {
-  id                   String          @id @default(cuid())
-  phoneNumberId        String
-  destinationType      DestinationType
+  id                    String          @id @default(cuid())
+  phoneNumberId         String
+  destinationType       DestinationType
   destinationIdentifier String
-  timezone             String          @default("Asia/Pontianak")
-  defaultDailyTime     String? // Store as "HH:mm"
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  timezone              String          @default("Asia/Pontianak")
+  defaultDailyTime      String? // Store as "HH:mm"
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
   @@map("whatsapp_configs")
 }
