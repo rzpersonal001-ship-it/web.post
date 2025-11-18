@@ -22,7 +22,8 @@ export async function GET(request: Request) {
       },
       orderBy: { scheduledAt: 'asc' },
     });
-    return NextResponse.json(jobs);
+    const total = await prisma.scheduledJob.count({ where });
+    return NextResponse.json({ jobs, total });
   } catch (error) {
     console.error('Error fetching scheduled jobs:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

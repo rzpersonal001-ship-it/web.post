@@ -1,0 +1,29 @@
+======================================================================
+📱 QR CODE WHATSAPP - SCAN SEKARANG!
+======================================================================
+
+QR String:
+2@1z3wy553ecwQoaGW17BBG0KITLiXFRcbLeOVJ8l2SBReC+930k35c4/QVaBCyCsejHz4BHYE3IwZ/j96QToYlGfVEgFksnLWgis=,fA5MTgzKh1DjFDZW0zm20mlki5dSxwfHflV/E/tHUik=,JeyWkjZwhoAUdyDXqEIr2LlzabOg+9E7MZWqLwuJSnI=,kUvBYr859MDm7kacRTj0YtQLHPkVEnIWQNqqg9Fw53s=
+
+======================================================================
+
+📍 LOKASI QR CODE IMAGE:
+C:\Users\RZ\Desktop\web.post\wa-scheduler\public\whatsapp-qr.png
+
+🌐 AKSES VIA BROWSER:
+http://localhost:3000/whatsapp-qr.png
+
+======================================================================
+
+💡 CARA SCAN:
+1. Buka WhatsApp di HP
+2. Tap menu (⋮) > Linked Devices
+3. Tap "Link a Device"
+4. Scan QR code di atas atau di browser
+
+⏳ STATUS: Menunggu scan...
+
+Bot akan otomatis terkoneksi setelah scan berhasil.
+Kemudian pesan akan dikirim ke: 0895339581136
+
+======================================================================

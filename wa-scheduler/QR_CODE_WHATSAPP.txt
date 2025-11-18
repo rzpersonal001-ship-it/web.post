@@ -1,0 +1,38 @@
+======================================================================
+📱 SCAN QR CODE INI DENGAN WHATSAPP ANDA:
+======================================================================
+
+QR CODE STRING:
+2@CvxgFMqvgWx5vRpXM89zi2H42W/2NvtWEyUz8PzVwEIiPO4ffKZ5oCoT55Y4ree3v2vqTJ4eFStn1Tl3TqIC9jN/elCLKE1fzuk=,YZHCiF3nXTq44xlsS6WPABlms+gCqqo4qpURTsE79FE=,ZBYQUWA/f63XgMNNAvcbvdsAd0QyYLg64A36D2FwREw=,xDaiZcDCHlHQhfRhSSWB4ufcrWkFfn+L8T/YXXw+ayI=
+
+======================================================================
+
+💡 CARA SCAN QR CODE:
+
+1. Buka WhatsApp di HP Anda
+2. Tap menu (⋮) atau Settings
+3. Pilih "Linked Devices" / "Perangkat Tertaut"
+4. Tap "Link a Device" / "Tautkan Perangkat"
+5. Arahkan kamera ke QR code di terminal
+
+⚠️ PENTING:
+- QR code ini hanya valid untuk beberapa menit
+- Jika expired, restart bot dengan: npm run bot
+- Bot harus tetap running setelah scan berhasil
+
+======================================================================
+
+📍 STATUS BOT: MENUNGGU SCAN
+
+Setelah scan berhasil, bot akan otomatis terkoneksi dan Anda bisa:
+1. Kirim pesan test: npm run test:send
+2. Kirim via API: npm run api
+3. Gunakan dashboard: http://localhost:3000
+
+======================================================================
+
+🎯 NOMOR TUJUAN: 0895339581136
+
+Setelah bot terkoneksi, pesan akan dikirim ke nomor ini.
+
+======================================================================

@@ -12,10 +12,13 @@ export default function NewPostPage() {
   // Form state
   const [categoryId, setCategoryId] = useState('');
   const [mediaType, setMediaType] = useState('IMAGE');
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [caption, setCaption] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('https://picsum.photos/800/600');
+  const [caption, setCaption] = useState('🤖 Test dari WA Scheduler\n\nHalo! Pesan test berhasil dikirim.\nAplikasi siap digunakan! 🎉');
   const [postingOption, setPostingOption] = useState('send-now');
   const [saveToLibrary, setSaveToLibrary] = useState(true);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
   // Schedule state
   const [scheduleType, setScheduleType] =useState('ONCE');
   const [timeOfDay, setTimeOfDay] = useState('09:00');
@@ -29,6 +32,50 @@ export default function NewPostPage() {
     }
     fetchCategories();
   }, []);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to a service (for now, use placeholder)
+    // In production, upload to cloud storage (Cloudinary, S3, etc.)
+    const fakeUrl = URL.createObjectURL(file);
+    setMediaUrl(fakeUrl);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          const file = new File([blob], 'pasted-image.png', { type: 'image/png' });
+          setUploadedFile(file);
+          
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setUploadPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+
+          const fakeUrl = URL.createObjectURL(file);
+          setMediaUrl(fakeUrl);
+          setMediaType('IMAGE');
+        }
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,16 +120,69 @@ export default function NewPostPage() {
           </div>
         </div>
 
-        {/* Media URL */}
+        {/* Media URL or Upload */}
         <div>
-          <label htmlFor="mediaUrl" className="block font-semibold">Media URL</label>
-          <input id="mediaUrl" type="text" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://..." className="app-input" ></input>
+          <label htmlFor="mediaUrl" className="block font-semibold mb-2">Media <span className="text-red-500">*</span></label>
+          
+          {/* Upload Button */}
+          <div className="mb-3">
+            <label className="inline-block px-4 py-2 bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-600">
+              📁 Upload File (Image/Video)
+              <input 
+                type="file" 
+                accept="image/*,video/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+            <span className="ml-3 text-sm text-gray-500">
+              atau paste gambar (Ctrl+V)
+            </span>
+          </div>
+
+          {/* Preview */}
+          {uploadPreview && (
+            <div className="mb-3 p-2 border rounded">
+              <p className="text-sm font-semibold mb-2">Preview:</p>
+              {mediaType === 'IMAGE' ? (
+                <img src={uploadPreview} alt="Preview" className="max-w-xs max-h-48 object-contain" />
+              ) : (
+                <video src={uploadPreview} controls className="max-w-xs max-h-48" />
+              )}
+            </div>
+          )}
+
+          {/* URL Input */}
+          <input 
+            id="mediaUrl" 
+            type="url" 
+            value={mediaUrl} 
+            onChange={(e) => setMediaUrl(e.target.value)} 
+            onPaste={handlePaste}
+            placeholder="https://picsum.photos/800/600" 
+            className="app-input"
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Contoh: https://picsum.photos/800/600 atau upload file di atas
+          </p>
         </div>
 
         {/* Caption */}
         <div>
-          <label htmlFor="caption" className="block font-semibold">Caption</label>
-          <textarea id="caption" value={caption} onChange={(e) => setCaption(e.target.value)} rows={5} className="app-input" required />
+          <label htmlFor="caption" className="block font-semibold">Caption <span className="text-red-500">*</span></label>
+          <textarea 
+            id="caption" 
+            value={caption} 
+            onChange={(e) => setCaption(e.target.value)} 
+            rows={5} 
+            className="app-input" 
+            placeholder="Tulis caption untuk post Anda..."
+            required 
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Pesan yang akan dikirim ke WhatsApp
+          </p>
         </div>
 
         {/* Posting Options */}

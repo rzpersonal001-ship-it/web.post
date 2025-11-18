@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { validateRequiredFields } from '@/lib/validation';
 import { sendTextWithMedia } from '@/lib/whatsappService';
+import { sendTextWithMediaBaileys } from '@/lib/baileysServiceSimple';
 import { generateJobsForSchedule } from '@/lib/schedulerLogic';
 import { WhatsAppConfig } from '@prisma/client';
 
@@ -42,15 +43,26 @@ export async function POST(request: Request) {
     const postErrors = validateRequiredFields({
       caption: postDetails.caption,
       mediaType: postDetails.mediaType,
-      mediaUrl: postDetails.mediaUrl,
     });
     if (postErrors.length > 0) {
       return NextResponse.json({ message: 'Post validation failed', errors: postErrors }, { status: 400 });
     }
+    
+    // Validate mediaUrl only if provided
+    if (!postDetails.mediaUrl || postDetails.mediaUrl.trim() === '') {
+      return NextResponse.json({ 
+        message: 'Media URL is required. Please provide a valid image or video URL.', 
+        errors: ['mediaUrl is required'] 
+      }, { status: 400 });
+    }
 
     const post = await prisma.post.create({
       data: {
-        ...postDetails,
+        caption: postDetails.caption,
+        mediaType: postDetails.mediaType,
+        mediaUrl: postDetails.mediaUrl,
+        categoryId: postDetails.categoryId || null,
+        title: postDetails.title || null,
         isActive: postDetails.saveToLibrary ?? true,
       },
     });
@@ -60,7 +72,12 @@ export async function POST(request: Request) {
       if (!config) {
         return NextResponse.json({ message: 'WhatsApp configuration not found.' }, { status: 500 });
       }
-      const { success, error } = await sendTextWithMedia(post, config as WhatsAppConfig); // Assuming config is found and valid
+      
+      // Use Baileys instead of Cloud API
+      const { success, error } = await sendTextWithMediaBaileys(post, {
+        destinationIdentifier: config.destinationIdentifier
+      });
+      
       await prisma.scheduledJob.create({
         data: {
           postId: post.id,
@@ -70,7 +87,7 @@ export async function POST(request: Request) {
           sentAt: success ? new Date() : undefined,
         },
       });
-      return NextResponse.json({ message: 'Post sent!', post }, { status: 201 });
+      return NextResponse.json({ message: 'Post sent!', post, success }, { status: 201 });
     }
 
     if (action === 'schedule') {

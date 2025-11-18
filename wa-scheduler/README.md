@@ -16,14 +16,15 @@ This is a full-stack web application for managing and scheduling content to be s
 -   **Styling:** Tailwind CSS
 -   **ORM:** Prisma
 -   **Database:** PostgreSQL
--   **Runtime:** Node.js 18+
+-   **Runtime:** Node.js 20+ (required by Baileys & associated tooling)
 
 ## Getting Started
 
 ### Prerequisites
 
--   Node.js 18+
--   PostgreSQL database (e.g., from Supabase or Neon)
+-   Node.js 20+
+-   Docker Desktop (recommended for local PostgreSQL)
+-   A PostgreSQL database (local Docker stack or hosted, e.g., Neon/Supabase)
 
 ### Setup
 
@@ -42,27 +43,37 @@ This is a full-stack web application for managing and scheduling content to be s
 
 3.  **Set up environment variables:**
 
-    Copy the `.env.example` file to a new file named `.env` and fill in the required values.
+    - Copy `env.example` to `.env.local` (or `.env`) and adjust the values.
+    - The template already includes sane defaults for the local Docker database:
 
     ```bash
-    cp .env.example .env
+    cp env.example .env.local
+    # or on Windows PowerShell
+    copy env.example .env.local
     ```
 
-    You will need to provide:
-    -   `DATABASE_URL`: Your PostgreSQL connection string.
-    -   `WHATSAPP_ACCESS_TOKEN`: Your WhatsApp Cloud API access token.
-    -   `WHATSAPP_PHONE_NUMBER_ID`: Your WhatsApp phone number ID.
-    -   `WHATSAPP_DEFAULT_DESTINATION_IDENTIFIER`: The default WhatsApp group or number to send to.
+    Key values:
+    - `DATABASE_URL`: defaults to `postgresql://postgres:postgres@localhost:5432/webpost?schema=public`
+    - `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_DEFAULT_DESTINATION_IDENTIFIER`
+    - Optional runtime tuning such as `CRON_SECRET`, `SCHEDULER_INTERVAL`, etc.
 
-4.  **Run database migrations:**
-
-    This will create the necessary tables in your database based on the schema defined in `prisma/schema.prisma`.
+4.  **Start the local PostgreSQL container (optional but recommended):**
 
     ```bash
-    npx prisma migrate dev
+    docker compose up -d postgres
     ```
 
-5.  **Start the development server:**
+    The compose file exposes port `5432` so the default `DATABASE_URL` works out of the box.
+
+5.  **Run database migrations:**
+
+    ```bash
+    npm run prisma:migrate
+    ```
+
+    This executes `prisma migrate dev` using the connection string defined in your `.env.local`.
+
+6.  **Start the development server:**
 
     ```bash
     npm run dev
@@ -105,7 +116,7 @@ This project is optimized for deployment on Vercel's free tier. Follow these ste
 
 4.  **Configure Environment Variables:**
     - In your Vercel project settings, go to the "Environment Variables" section.
-    - Add all the variables from the `.env.example` file, including:
+    - Add all the variables from the `env.example` file, including:
         - `DATABASE_URL`: Paste the connection URL from your Neon/Supabase database.
         - `WHATSAPP_ACCESS_TOKEN`: Your token from Meta.
         - `WHATSAPP_PHONE_NUMBER_ID`: Your phone number ID.
@@ -125,8 +136,14 @@ This project is optimized for deployment on Vercel's free tier. Follow these ste
     - The `vercel.json` file in this repository configures a cron job to run every hour.
     - In your Vercel project settings, navigate to the "Cron Jobs" tab to verify that the job is scheduled and running successfully.
 
+## Windows & Build Notes
+
+-   All `next`-based npm scripts (`dev`, `build`, `start`, `lint`) automatically register a small loader (`scripts/register-loader.mjs`) so Windows absolute paths are converted into file URLs. You no longer need to set `NODE_OPTIONS` manually.
+-   If you invoke `next` directly, prefix the command with `NODE_OPTIONS="--import ./scripts/register-loader.mjs"` to avoid `ERR_UNSUPPORTED_ESM_URL_SCHEME`.
+
 ## Notes
 
 -   The WhatsApp access token is configured only via environment variables and is not stored in the database.
 -   Media URLs must be public HTTPS URLs that can be accessed by WhatsApp.
 -   This application is designed to be free-tier friendly and can be deployed on platforms like Vercel with a database from Supabase or Neon.
+-   Local migrations require a running PostgreSQL instance. If Docker Desktop is not running, `docker compose` commands will fail—start Docker first or point `DATABASE_URL` to a hosted database.

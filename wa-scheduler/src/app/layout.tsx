@@ -1,8 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'WA Content Scheduler',
@@ -16,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
   <html lang="en">
-    <body className={inter.className}>
+    <body className="font-sans">
       <div className="flex min-h-screen app-shell">
           <aside className="w-64 app-sidebar shadow-md">
             <div className="p-6 app-sidebar-header">
@@ -29,6 +26,12 @@ export default function RootLayout({
                 </li>
                 <li className="p-4 app-nav-item">
                   <a href="/new-post">Posting Baru</a>
+                </li>
+                <li className="p-4 app-nav-item">
+                  <a href="/bulk-send">📤 Kirim Banyak</a>
+                </li>
+                <li className="p-4 app-nav-item">
+                  <a href="/saved-messages">💾 Pesan Tersimpan</a>
                 </li>
                 <li className="p-4 app-nav-item">
                   <a href="/library">Library Konten</a>

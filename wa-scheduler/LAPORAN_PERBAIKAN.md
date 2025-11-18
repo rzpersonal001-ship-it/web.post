@@ -389,7 +389,7 @@ Perubahan signifikan dilakukan pada hampir semua file di direktori `server/`.
 
 - **`server/api.ts`**: Dibuat dari awal untuk menyediakan *endpoint* `POST /send` yang diperlukan untuk pengujian.
 - **`server/main.ts`**: Dibuat sebagai titik masuk utama untuk menyatukan semua layanan backend ke dalam satu proses.
-- **`.env.example`**: Dibuat untuk memberikan panduan tentang variabel lingkungan yang diperlukan.
+- **`env.example`**: Dibuat untuk memberikan panduan tentang variabel lingkungan yang diperlukan.
 - **`.env`**: Dibuat selama proses perbaikan untuk menjalankan aplikasi.
 
 ## 4. Hasil Build & Status PM2

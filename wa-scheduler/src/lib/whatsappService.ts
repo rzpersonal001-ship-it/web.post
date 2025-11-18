@@ -1,7 +1,7 @@
-import { Post } from '@prisma/client';
+import { DestinationType, Post } from '@prisma/client';
 
 export interface WhatsAppDestinationConfig {
-  destinationType: 'single' | 'group';
+  destinationType: DestinationType;
   destinationIdentifier: string;
   phoneNumberId: string;
 }
@@ -50,7 +50,10 @@ export async function sendTextWithMedia(
       body: JSON.stringify(messagePayload),
     });
 
-    const responseData = await response.json();
+    const responseData = (await response.json()) as {
+      error?: { message?: string };
+      [key: string]: unknown;
+    };
 
     if (!response.ok) {
       console.error('Failed to send WhatsApp message:', responseData);

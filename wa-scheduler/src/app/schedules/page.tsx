@@ -34,7 +34,10 @@ export default function SchedulesPage() {
 
         const res = await fetch(`/api/scheduled-jobs?${params.toString()}`);
         if (!res.ok) throw new Error('Failed to fetch scheduled jobs');
-        let data = await res.json();
+        const result = await res.json();
+        
+        // Handle both array and object with jobs property
+        let data = Array.isArray(result) ? result : (result.jobs || []);
 
         // For past view, we'd ideally fetch descending and limit.
         // Here, we'll just filter and reverse client-side for simplicity.
